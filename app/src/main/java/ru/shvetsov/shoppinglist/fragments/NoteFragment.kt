@@ -19,7 +19,7 @@ import ru.shvetsov.shoppinglist.db.NoteAdapter
 import ru.shvetsov.shoppinglist.entities.NoteItem
 import java.io.Serializable
 
-class NoteFragment : BaseFragment() {
+class NoteFragment() : BaseFragment(), NoteAdapter.Listener {
 
     private lateinit var binding: FragmentNoteBinding
     private lateinit var editLauncher: ActivityResultLauncher<Intent>
@@ -54,7 +54,7 @@ class NoteFragment : BaseFragment() {
 
     private fun initRecyclerView() = with(binding) {
         rcViewNote.layoutManager = LinearLayoutManager(activity)
-        adapter = NoteAdapter()
+        adapter = NoteAdapter(this@NoteFragment)
         rcViewNote.adapter = adapter
     }
 
@@ -69,22 +69,46 @@ class NoteFragment : BaseFragment() {
             ActivityResultContracts.StartActivityForResult()
         ) {
             if (it.resultCode == Activity.RESULT_OK) {
-                mainViewModel.insertNote(it.data?.serializable(NEW_NOTE_KEY))
+                val editState = it.data?.getStringExtra(EDIT_STATE_KEY)
+                if (editState == "update") {
+                    mainViewModel.updateNote(it.data?.serializable(NEW_NOTE_KEY))
+                } else {
+                    mainViewModel.insertNote(it.data?.serializable(NEW_NOTE_KEY))
+                }
             }
         }
     }
+
     inline fun <reified T : Serializable> Bundle.serializable(key: String): T? = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializable(key, T::class.java)
         else -> @Suppress("DEPRECATION") getSerializable(key) as? T
     }
 
     inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializableExtra(key, T::class.java)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializableExtra(
+            key,
+            T::class.java
+        )
+
         else -> @Suppress("DEPRECATION") getSerializableExtra(key) as? T
     }
+
     companion object {
         const val NEW_NOTE_KEY = "new_note_key"
+        const val EDIT_STATE_KEY = "edit_state_key"
+
         @JvmStatic
         fun newInstance() = NoteFragment()
+    }
+
+    override fun deleteNote(id: Int) {
+        mainViewModel.deleteNote(id)
+    }
+
+    override fun updateNote(note: NoteItem) {
+        val intent = Intent(activity, NewNoteActivity::class.java).apply {
+            putExtra(NEW_NOTE_KEY, note)
+        }
+        editLauncher.launch(intent)
     }
 }
