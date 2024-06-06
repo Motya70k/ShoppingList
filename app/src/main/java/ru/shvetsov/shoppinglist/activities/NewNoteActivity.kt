@@ -1,18 +1,25 @@
 package ru.shvetsov.shoppinglist.activities
 
 import android.content.Intent
+import android.graphics.Typeface
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
+import android.text.Spannable
+import android.text.style.StyleSpan
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.animation.Animation
 import androidx.appcompat.app.AppCompatActivity
 import ru.shvetsov.shoppinglist.R
 import ru.shvetsov.shoppinglist.databinding.ActivityNewNoteBinding
 import ru.shvetsov.shoppinglist.entities.NoteItem
 import ru.shvetsov.shoppinglist.fragments.NoteFragment
+import ru.shvetsov.shoppinglist.utils.HtmlManager
 import java.io.Serializable
 import java.text.SimpleDateFormat
+import android.view.animation.AnimationUtils
 
 class NewNoteActivity : AppCompatActivity() {
 
@@ -34,7 +41,7 @@ class NewNoteActivity : AppCompatActivity() {
     private fun fillNote() = with(binding) {
         if (note != null) {
             edTitle.setText(note?.title)
-            edDescription.setText(note?.content)
+            edDescription.setText(HtmlManager.getTextFromHtml(note?.content!!).trim())
         }
     }
 
@@ -44,12 +51,50 @@ class NewNoteActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.save) {
-            setMainResult()
-        } else if (item.itemId == android.R.id.home) {
-            finish()
+        when (item.itemId) {
+            R.id.save -> {
+                setMainResult()
+            }
+
+            android.R.id.home -> {
+                finish()
+            }
+
+            R.id.bold -> {
+                setBoldForSelectedText()
+            }
+
+            R.id.colorPicker -> {
+                if (binding.colorPicker.isShown) {
+                    closeColorPicker()
+                } else {
+                    openColorPicker()
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun setBoldForSelectedText() = with(binding) {
+        val startPosition = edDescription.selectionStart
+        val endPosition = edDescription.selectionEnd
+        val styles = edDescription.text.getSpans(startPosition, endPosition, StyleSpan::class.java)
+        var boldStyle: StyleSpan? = null
+
+        if (styles.isNotEmpty()) {
+            edDescription.text.removeSpan(styles[0])
+        } else {
+            boldStyle = StyleSpan(Typeface.BOLD)
+        }
+
+        edDescription.text.setSpan(
+            boldStyle,
+            startPosition,
+            endPosition,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        edDescription.text.trim()
+        edDescription.setSelection(startPosition)
     }
 
     private fun actionBarSettings() {
@@ -73,10 +118,10 @@ class NewNoteActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun updateNote() : NoteItem? = with(binding) {
+    private fun updateNote(): NoteItem? = with(binding) {
         return note?.copy(
             title = edTitle.text.toString(),
-            content = edDescription.text.toString()
+            content = HtmlManager.textToHtml(edDescription.text)
         )
     }
 
@@ -84,7 +129,7 @@ class NewNoteActivity : AppCompatActivity() {
         return NoteItem(
             null,
             binding.edTitle.text.toString(),
-            binding.edDescription.text.toString(),
+            HtmlManager.textToHtml(binding.edDescription.text),
             getCurrentTime(),
             ""
         )
@@ -95,12 +140,37 @@ class NewNoteActivity : AppCompatActivity() {
         return format.format(Calendar.getInstance().time)
     }
 
-    inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
+    private inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializableExtra(
             key,
             T::class.java
         )
 
         else -> @Suppress("DEPRECATION") getSerializableExtra(key) as? T
+    }
+
+    private fun openColorPicker() {
+        val openAnim = AnimationUtils.loadAnimation(this, R.anim.open_color_picker)
+        binding.colorPicker.visibility = View.VISIBLE
+        binding.colorPicker.startAnimation(openAnim)
+    }
+
+    private fun closeColorPicker() {
+        val openAnim = AnimationUtils.loadAnimation(this, R.anim.close_color_picker)
+        openAnim.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation?) {
+
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                binding.colorPicker.visibility = View.GONE
+            }
+
+            override fun onAnimationRepeat(animation: Animation?) {
+
+            }
+
+        })
+        binding.colorPicker.startAnimation(openAnim)
     }
 }

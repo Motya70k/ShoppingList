@@ -5,4 +5,11 @@
     <color name="green">#4CAF50</color>
     <color name="purple">#673AB7</color>
     <color name="blue">#2196F3</color>
+
+    <color name="picker_red">#F41818</color>
+    <color name="picker_green">#15ED1F</color>
+    <color name="picker_blue">#0B5CFF</color>
+    <color name="picker_black">#000000</color>
+    <color name="picker_yellow">#ECF404</color>
+    <color name="picker_orange">#DA8404</color>
 </resources>
