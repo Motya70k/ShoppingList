@@ -1,11 +1,13 @@
 package ru.shvetsov.shoppinglist.activities
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Typeface
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
 import android.text.Spannable
+import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.Menu
 import android.view.MenuItem
@@ -20,6 +22,8 @@ import ru.shvetsov.shoppinglist.utils.HtmlManager
 import java.io.Serializable
 import java.text.SimpleDateFormat
 import android.view.animation.AnimationUtils
+import androidx.core.content.ContextCompat
+import ru.shvetsov.shoppinglist.utils.ColorPickerTouchListener
 
 class NewNoteActivity : AppCompatActivity() {
 
@@ -31,6 +35,13 @@ class NewNoteActivity : AppCompatActivity() {
         setContentView(binding.root)
         actionBarSettings()
         getNote()
+        init()
+        onClickColor()
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun init() {
+        binding.colorPicker.setOnTouchListener(ColorPickerTouchListener())
     }
 
     private fun getNote() {
@@ -97,6 +108,23 @@ class NewNoteActivity : AppCompatActivity() {
         edDescription.setSelection(startPosition)
     }
 
+    private fun setColorForSelectedText(colorId: Int) = with(binding) {
+        val startPosition = edDescription.selectionStart
+        val endPosition = edDescription.selectionEnd
+        val styles = edDescription.text.getSpans(startPosition, endPosition, ForegroundColorSpan::class.java)
+
+        if (styles.isNotEmpty()) edDescription.text.removeSpan(styles[0])
+
+        edDescription.text.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(this@NewNoteActivity, colorId)),
+            startPosition,
+            endPosition,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        edDescription.text.trim()
+        edDescription.setSelection(startPosition)
+    }
+
     private fun actionBarSettings() {
         val actionBar = supportActionBar
         actionBar?.setDisplayHomeAsUpEnabled(true)
@@ -150,8 +178,8 @@ class NewNoteActivity : AppCompatActivity() {
     }
 
     private fun openColorPicker() {
-        val openAnim = AnimationUtils.loadAnimation(this, R.anim.open_color_picker)
         binding.colorPicker.visibility = View.VISIBLE
+        val openAnim = AnimationUtils.loadAnimation(this, R.anim.open_color_picker)
         binding.colorPicker.startAnimation(openAnim)
     }
 
@@ -172,5 +200,26 @@ class NewNoteActivity : AppCompatActivity() {
 
         })
         binding.colorPicker.startAnimation(openAnim)
+    }
+
+    private fun onClickColor() = with(binding) {
+        ibRed.setOnClickListener {
+            setColorForSelectedText(R.color.picker_red)
+        }
+        ibBlue.setOnClickListener {
+            setColorForSelectedText(R.color.picker_blue)
+        }
+        ibBlack.setOnClickListener {
+            setColorForSelectedText(R.color.picker_black)
+        }
+        ibGreen.setOnClickListener {
+            setColorForSelectedText(R.color.picker_green)
+        }
+        ibOrange.setOnClickListener {
+            setColorForSelectedText(R.color.picker_orange)
+        }
+        ibYellow.setOnClickListener {
+            setColorForSelectedText(R.color.picker_yellow)
+        }
     }
 }
