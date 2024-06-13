@@ -3,7 +3,6 @@ package ru.shvetsov.shoppinglist.activities
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Typeface
-import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
 import android.text.Spannable
@@ -20,10 +19,10 @@ import ru.shvetsov.shoppinglist.entities.NoteItem
 import ru.shvetsov.shoppinglist.fragments.NoteFragment
 import ru.shvetsov.shoppinglist.utils.HtmlManager
 import java.io.Serializable
-import java.text.SimpleDateFormat
 import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import ru.shvetsov.shoppinglist.utils.ColorPickerTouchListener
+import ru.shvetsov.shoppinglist.utils.TimeManager.getCurrentTime
 
 class NewNoteActivity : AppCompatActivity() {
 
@@ -161,11 +160,6 @@ class NewNoteActivity : AppCompatActivity() {
             getCurrentTime(),
             ""
         )
-    }
-
-    private fun getCurrentTime(): String {
-        val format = SimpleDateFormat.getDateTimeInstance()
-        return format.format(Calendar.getInstance().time)
     }
 
     private inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
