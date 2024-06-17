@@ -110,7 +110,8 @@ class NewNoteActivity : AppCompatActivity() {
     private fun setColorForSelectedText(colorId: Int) = with(binding) {
         val startPosition = edDescription.selectionStart
         val endPosition = edDescription.selectionEnd
-        val styles = edDescription.text.getSpans(startPosition, endPosition, ForegroundColorSpan::class.java)
+        val styles =
+            edDescription.text.getSpans(startPosition, endPosition, ForegroundColorSpan::class.java)
 
         if (styles.isNotEmpty()) edDescription.text.removeSpan(styles[0])
 
@@ -191,7 +192,6 @@ class NewNoteActivity : AppCompatActivity() {
             override fun onAnimationRepeat(animation: Animation?) {
 
             }
-
         })
         binding.colorPicker.startAnimation(openAnim)
     }

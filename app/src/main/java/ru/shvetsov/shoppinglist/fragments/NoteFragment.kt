@@ -73,7 +73,7 @@ class NoteFragment() : BaseFragment(), NoteAdapter.Listener {
                 if (editState == "update") {
                     mainViewModel.updateNote(it.data?.serializable(NEW_NOTE_KEY))
                 } else {
-                    mainViewModel.insertNote(it.data?.serializable(NEW_NOTE_KEY))
+                    mainViewModel.insertNote(it.data?.serializable(NEW_NOTE_KEY)!!)
                 }
             }
         }
