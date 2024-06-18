@@ -1,10 +1,14 @@
 package ru.shvetsov.shoppinglist.activities
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuItem.OnActionExpandListener
+import android.view.View
 import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -13,8 +17,10 @@ import ru.shvetsov.shoppinglist.R
 import ru.shvetsov.shoppinglist.databinding.ActivityShoppingListBinding
 import ru.shvetsov.shoppinglist.db.MainViewModel
 import ru.shvetsov.shoppinglist.db.ShoppingListItemAdapter
+import ru.shvetsov.shoppinglist.dialogs.EditListItemDialog
 import ru.shvetsov.shoppinglist.entities.ShoppingListItem
 import ru.shvetsov.shoppinglist.entities.ShoppingListName
+import ru.shvetsov.shoppinglist.utils.ShareHelper
 
 class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listener {
     private lateinit var binding: ActivityShoppingListBinding
@@ -22,6 +28,7 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
     private lateinit var saveItem: MenuItem
     private var edItem: EditText? = null
     private var adapter: ShoppingListItemAdapter? = null
+    private lateinit var textWatcher: TextWatcher
 
     private val mainViewModel: MainViewModel by viewModels {
         MainViewModel.MainViewModelFactory((applicationContext as MainApp).dataBase)
@@ -43,12 +50,45 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         edItem = newItem.actionView?.findViewById(R.id.edNewShopItem)
         newItem.setOnActionExpandListener(expandActionView())
         saveItem.isVisible = false
+        textWatcher = textWatcher()
         return true
     }
 
+    private fun textWatcher(): TextWatcher {
+        return object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.save_item) {
-            addNewShopItem()
+        when (item.itemId) {
+            R.id.save_item -> {
+                addNewShopItem()
+            }
+            R.id.delete_list -> {
+                mainViewModel.deleteList(shoppingListName?.id!!, true)
+                finish()
+            }
+            R.id.clear_list -> {
+                mainViewModel.deleteList(shoppingListName?.id!!, false)
+            }
+            R.id.share_list -> {
+                startActivity(Intent.createChooser(
+                    ShareHelper.shareShoppingList(adapter?.currentList!!, shoppingListName?.name!!),
+                    "Share by"
+                ))
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -58,18 +98,23 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         val item = ShoppingListItem(
             null,
             edItem?.text.toString(),
-            null,
-            0,
+            "",
+            false,
             shoppingListName?.id!!,
             0
         )
-        edItem?.setText("")
+        edItem?.setText(R.string.empty_string)
         mainViewModel.insertListItem(item)
     }
 
     private fun listItemObserver() {
         mainViewModel.getAllItemsFromList(shoppingListName?.id!!).observe(this) {
             adapter?.submitList(it)
+            binding.tvEmpty.visibility = if (it.isEmpty()) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
         }
     }
 
@@ -83,11 +128,13 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         return object : OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem): Boolean {
                 saveItem.isVisible = true
+                edItem?.addTextChangedListener(textWatcher)
                 return true
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 saveItem.isVisible = false
+                edItem?.removeTextChangedListener(textWatcher)
                 invalidateOptionsMenu()
                 return true
             }
@@ -108,15 +155,18 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         const val SHOPPING_LIST_NAME = "shopping_list_name"
     }
 
-    override fun deleteItem(id: Int) {
-
+    override fun onClickItem(listItem: ShoppingListItem, state: Int) {
+        when (state) {
+            ShoppingListItemAdapter.CHECK_BOX -> mainViewModel.updateListItem(listItem)
+            ShoppingListItemAdapter.EDIT -> editListItem(listItem)
+        }
     }
 
-    override fun editItem(listName: ShoppingListName) {
-
-    }
-
-    override fun onClickItem(listName: ShoppingListName) {
-
+    private fun editListItem(listItem: ShoppingListItem) {
+        EditListItemDialog.showDialog(this, listItem, object : EditListItemDialog.Listener {
+            override fun onClick(item: ShoppingListItem) {
+                mainViewModel.updateListItem(item)
+            }
+        })
     }
 }

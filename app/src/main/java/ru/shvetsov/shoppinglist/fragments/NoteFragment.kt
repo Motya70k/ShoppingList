@@ -19,7 +19,7 @@ import ru.shvetsov.shoppinglist.db.NoteAdapter
 import ru.shvetsov.shoppinglist.entities.NoteItem
 import java.io.Serializable
 
-class NoteFragment() : BaseFragment(), NoteAdapter.Listener {
+class NoteFragment : BaseFragment(), NoteAdapter.Listener {
 
     private lateinit var binding: FragmentNoteBinding
     private lateinit var editLauncher: ActivityResultLauncher<Intent>
@@ -71,7 +71,7 @@ class NoteFragment() : BaseFragment(), NoteAdapter.Listener {
             if (it.resultCode == Activity.RESULT_OK) {
                 val editState = it.data?.getStringExtra(EDIT_STATE_KEY)
                 if (editState == "update") {
-                    mainViewModel.updateNote(it.data?.serializable(NEW_NOTE_KEY))
+                    mainViewModel.updateNote(it.data?.serializable(NEW_NOTE_KEY)!!)
                 } else {
                     mainViewModel.insertNote(it.data?.serializable(NEW_NOTE_KEY)!!)
                 }
@@ -79,12 +79,7 @@ class NoteFragment() : BaseFragment(), NoteAdapter.Listener {
         }
     }
 
-    inline fun <reified T : Serializable> Bundle.serializable(key: String): T? = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializable(key, T::class.java)
-        else -> @Suppress("DEPRECATION") getSerializable(key) as? T
-    }
-
-    inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
+    private inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializableExtra(
             key,
             T::class.java

@@ -14,4 +14,5 @@
     <color name="picker_yellow">#ECF404</color>
     <color name="picker_orange">#DA8404</color>
     <color name="gray">#474747</color>
+    <color name="text_gray">#A6A6A6</color>
 </resources>

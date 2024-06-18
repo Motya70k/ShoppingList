@@ -1,16 +1,16 @@
 package ru.shvetsov.shoppinglist.db
 
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.shvetsov.shoppinglist.R
-import ru.shvetsov.shoppinglist.databinding.ListNameItemBinding
 import ru.shvetsov.shoppinglist.databinding.ShoppingListItemBinding
 import ru.shvetsov.shoppinglist.entities.ShoppingListItem
-import ru.shvetsov.shoppinglist.entities.ShoppingListName
 
 class ShoppingListItemAdapter(private val listener: Listener) :
     ListAdapter<ShoppingListItem, ShoppingListItemAdapter.ItemHolder>(ItemComparator()) {
@@ -35,11 +35,45 @@ class ShoppingListItemAdapter(private val listener: Listener) :
             val binding = ShoppingListItemBinding.bind(view)
             binding.apply {
                 tvName.text = shopListItem.name
+                tvInfo.text = shopListItem.itemInfo
+                tvInfo.visibility = itemInfoVisibility(shopListItem)
+                checkBox.isChecked = shopListItem.itemChecked
+                setPaintFlagAndColor(binding)
+                checkBox.setOnClickListener {
+                    listener.onClickItem(shopListItem.copy(itemChecked = checkBox.isChecked), CHECK_BOX)
+                }
+                ibEdit.setOnClickListener {
+                    listener.onClickItem(shopListItem, EDIT)
+                }
             }
         }
 
         fun setLibraryData(shopListItem: ShoppingListItem, listener: Listener) {
 
+        }
+
+        private fun itemInfoVisibility(shopListItem: ShoppingListItem): Int {
+            return if (shopListItem.itemInfo.isEmpty()) {
+                View.GONE
+            } else {
+                View.VISIBLE
+            }
+        }
+
+        private fun setPaintFlagAndColor(binding: ShoppingListItemBinding) {
+            binding.apply {
+                if (checkBox.isChecked) {
+                    tvName.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
+                    tvInfo.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
+                    tvName.setTextColor(ContextCompat.getColor(binding.root.context, R.color.text_gray))
+                    tvInfo.setTextColor(ContextCompat.getColor(binding.root.context, R.color.text_gray))
+                } else {
+                    tvName.paintFlags = Paint.ANTI_ALIAS_FLAG
+                    tvInfo.paintFlags = Paint.ANTI_ALIAS_FLAG
+                    tvName.setTextColor(ContextCompat.getColor(binding.root.context, R.color.black))
+                    tvInfo.setTextColor(ContextCompat.getColor(binding.root.context, R.color.black))
+                }
+            }
         }
 
         companion object {
@@ -76,8 +110,11 @@ class ShoppingListItemAdapter(private val listener: Listener) :
     }
 
     interface Listener {
-        fun deleteItem(id: Int)
-        fun editItem(listName: ShoppingListName)
-        fun onClickItem(listName: ShoppingListName)
+        fun onClickItem(listItem: ShoppingListItem, state: Int)
+    }
+
+    companion object {
+        const val EDIT = 0
+        const val CHECK_BOX = 1
     }
 }
