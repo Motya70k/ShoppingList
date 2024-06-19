@@ -18,9 +18,12 @@ object EditListItemDialog {
             edName.setText(item.name)
             edInfo.setText(item.itemInfo)
             buttonUpdate.setOnClickListener {
-                if (edInfo.text.toString().isNotEmpty()) {
-                    listener.onClick(item.copy(name = edName.text.toString(), itemInfo = edInfo.text.toString()))
-                }
+                listener.onClick(
+                    item.copy(
+                        name = edName.text.toString(),
+                        itemInfo = edInfo.text.toString()
+                    )
+                )
                 dialog?.dismiss()
             }
         }

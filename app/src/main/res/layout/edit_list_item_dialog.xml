@@ -35,8 +35,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="@string/name"
-                android:inputType="text"
-                android:maxLength="50" />
+                android:inputType="text" />
 
             <EditText
                 android:id="@+id/edInfo"
@@ -44,8 +43,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="@string/item_info"
-                android:inputType="text"
-                android:maxLength="50" />
+                android:inputType="text" />
 
             <Button
                 android:id="@+id/buttonUpdate"
