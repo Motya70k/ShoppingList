@@ -18,6 +18,7 @@ import ru.shvetsov.shoppinglist.databinding.ActivityShoppingListBinding
 import ru.shvetsov.shoppinglist.db.MainViewModel
 import ru.shvetsov.shoppinglist.db.ShoppingListItemAdapter
 import ru.shvetsov.shoppinglist.dialogs.EditListItemDialog
+import ru.shvetsov.shoppinglist.entities.LibraryItem
 import ru.shvetsov.shoppinglist.entities.ShoppingListItem
 import ru.shvetsov.shoppinglist.entities.ShoppingListName
 import ru.shvetsov.shoppinglist.utils.ShareHelper
@@ -61,7 +62,7 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
+                mainViewModel.getAllLibraryItems("%$s%")
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -118,6 +119,29 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         }
     }
 
+    private fun libraryItemObserver() {
+        mainViewModel.libraryItems.observe(this) {
+            val tempShopList = ArrayList<ShoppingListItem>()
+            it.forEach { item ->
+                val shopItem = ShoppingListItem(
+                    item.id,
+                    item.name,
+                    "",
+                    false,
+                    0,
+                    1
+                )
+                tempShopList.add(shopItem)
+            }
+            adapter?.submitList(tempShopList)
+            binding.tvEmpty.visibility = if (it.isEmpty()) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+        }
+    }
+
     private fun initRcView() = with(binding) {
         adapter = ShoppingListItemAdapter(this@ShoppingListActivity)
         rcView.layoutManager = LinearLayoutManager(this@ShoppingListActivity)
@@ -129,6 +153,9 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
             override fun onMenuItemActionExpand(item: MenuItem): Boolean {
                 saveItem.isVisible = true
                 edItem?.addTextChangedListener(textWatcher)
+                libraryItemObserver()
+                mainViewModel.getAllItemsFromList(shoppingListName?.id!!).removeObservers(this@ShoppingListActivity)
+                mainViewModel.getAllLibraryItems("%%")
                 return true
             }
 
@@ -136,6 +163,9 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
                 saveItem.isVisible = false
                 edItem?.removeTextChangedListener(textWatcher)
                 invalidateOptionsMenu()
+                mainViewModel.libraryItems.removeObservers(this@ShoppingListActivity)
+                edItem?.setText(R.string.empty_string)
+                listItemObserver()
                 return true
             }
 
@@ -159,6 +189,11 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         when (state) {
             ShoppingListItemAdapter.CHECK_BOX -> mainViewModel.updateListItem(listItem)
             ShoppingListItemAdapter.EDIT -> editListItem(listItem)
+            ShoppingListItemAdapter.EDIT_LIBRARY_ITEM -> editLibraryItem(listItem)
+            ShoppingListItemAdapter.DELETE_LIBRARY_ITEM -> {
+                mainViewModel.deleteLibraryItem(listItem.id!!)
+                mainViewModel.getAllLibraryItems("%${edItem?.text.toString()}%")
+            }
         }
     }
 
@@ -167,6 +202,15 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
             override fun onClick(item: ShoppingListItem) {
                 mainViewModel.updateListItem(item)
             }
+        })
+    }
+
+    private fun editLibraryItem(listItem: ShoppingListItem) {
+        EditListItemDialog.showDialog(this, listItem, object : EditListItemDialog.Listener {
+            override fun onClick(item: ShoppingListItem) {
+                mainViewModel.updateLibraryItem(LibraryItem(item.id, item.name))
+                mainViewModel.getAllLibraryItems("%${edItem?.text.toString()}%")
+        }
         })
     }
 }

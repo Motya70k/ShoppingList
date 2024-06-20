@@ -1,6 +1,8 @@
 package ru.shvetsov.shoppinglist.db
 
+import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
@@ -12,8 +14,8 @@ import ru.shvetsov.shoppinglist.entities.ShoppingListItem
 import ru.shvetsov.shoppinglist.entities.ShoppingListName
 
 class MainViewModel(dataBase: MainDataBase) : ViewModel() {
-
     private val dao = dataBase.getDao()
+    val libraryItems = MutableLiveData<List<LibraryItem>>()
     val allNotes: LiveData<List<NoteItem>> = dao.getAllNotes().asLiveData()
     val allShoppingListNames: LiveData<List<ShoppingListName>> = dao.getAllListNames().asLiveData()
 
@@ -57,6 +59,18 @@ class MainViewModel(dataBase: MainDataBase) : ViewModel() {
 
     private suspend fun isLibraryItemExist(name: String): Boolean {
         return dao.getAllLibraryItems(name).isNotEmpty()
+    }
+
+    fun getAllLibraryItems(name: String) = viewModelScope.launch {
+        libraryItems.postValue(dao.getAllLibraryItems(name))
+    }
+
+    fun updateLibraryItem(item: LibraryItem) = viewModelScope.launch {
+        dao.updateLibraryItem(item.id!!, item.name)
+    }
+
+    fun deleteLibraryItem(id: Int) = viewModelScope.launch {
+        dao.deleteLibraryItem(id)
     }
 
     class MainViewModelFactory(private val dataBase: MainDataBase) : ViewModelProvider.Factory {

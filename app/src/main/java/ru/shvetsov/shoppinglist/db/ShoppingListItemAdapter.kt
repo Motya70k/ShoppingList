@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.shvetsov.shoppinglist.R
+import ru.shvetsov.shoppinglist.databinding.ShopLibraryListItemBinding
 import ru.shvetsov.shoppinglist.databinding.ShoppingListItemBinding
 import ru.shvetsov.shoppinglist.entities.ShoppingListItem
 
@@ -49,7 +50,16 @@ class ShoppingListItemAdapter(private val listener: Listener) :
         }
 
         fun setLibraryData(shopListItem: ShoppingListItem, listener: Listener) {
-
+            val binding = ShopLibraryListItemBinding.bind(view)
+            binding.apply {
+                tvName.text = shopListItem.name
+                ibEdit.setOnClickListener {
+                    listener.onClickItem(shopListItem, EDIT_LIBRARY_ITEM)
+                }
+                ibDelete.setOnClickListener {
+                    listener.onClickItem(shopListItem, DELETE_LIBRARY_ITEM)
+                }
+            }
         }
 
         private fun itemInfoVisibility(shopListItem: ShoppingListItem): Int {
@@ -116,5 +126,7 @@ class ShoppingListItemAdapter(private val listener: Listener) :
     companion object {
         const val EDIT = 0
         const val CHECK_BOX = 1
+        const val EDIT_LIBRARY_ITEM = 2
+        const val DELETE_LIBRARY_ITEM = 3
     }
 }

@@ -53,4 +53,10 @@ interface Dao {
 
     @Insert
     suspend fun insertLibraryItem(libraryItem: LibraryItem)
+
+    @Query("UPDATE library SET name = :name WHERE id = :id")
+    suspend fun updateLibraryItem(id: Int, name: String)
+
+    @Query("DELETE FROM library WHERE id IS :id")
+    suspend fun deleteLibraryItem(id: Int)
 }
