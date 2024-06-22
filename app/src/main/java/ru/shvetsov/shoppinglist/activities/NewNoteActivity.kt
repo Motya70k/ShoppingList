@@ -2,6 +2,7 @@ package ru.shvetsov.shoppinglist.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
@@ -20,27 +21,35 @@ import ru.shvetsov.shoppinglist.fragments.NoteFragment
 import ru.shvetsov.shoppinglist.utils.HtmlManager
 import java.io.Serializable
 import android.view.animation.AnimationUtils
+import android.widget.EditText
 import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
 import ru.shvetsov.shoppinglist.utils.ColorPickerTouchListener
 import ru.shvetsov.shoppinglist.utils.TimeManager.getCurrentTime
 
 class NewNoteActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityNewNoteBinding
     private var note: NoteItem? = null
+    private var sharedPreferences: SharedPreferences? = null
+    private lateinit var defaultPreference: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityNewNoteBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
+        defaultPreference = PreferenceManager.getDefaultSharedPreferences(this)
+        setTheme(getSelectedTheme())
         setContentView(binding.root)
         actionBarSettings()
         getNote()
         init()
+        setTextSize()
         onClickColor()
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
         binding.colorPicker.setOnTouchListener(ColorPickerTouchListener())
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
     }
 
     private fun getNote() {
@@ -65,15 +74,12 @@ class NewNoteActivity : AppCompatActivity() {
             R.id.save -> {
                 setMainResult()
             }
-
             android.R.id.home -> {
                 finish()
             }
-
             R.id.bold -> {
                 setBoldForSelectedText()
             }
-
             R.id.colorPicker -> {
                 if (binding.colorPicker.isShown) {
                     closeColorPicker()
@@ -168,7 +174,6 @@ class NewNoteActivity : AppCompatActivity() {
             key,
             T::class.java
         )
-
         else -> @Suppress("DEPRECATION") getSerializableExtra(key) as? T
     }
 
@@ -214,6 +219,23 @@ class NewNoteActivity : AppCompatActivity() {
         }
         ibYellow.setOnClickListener {
             setColorForSelectedText(R.color.picker_yellow)
+        }
+    }
+
+    private fun EditText.setTextSize(size: String?) {
+        if (size != null) this.textSize = size.toFloat()
+    }
+
+    private fun setTextSize() = with(binding){
+        edTitle.setTextSize(sharedPreferences?.getString("title_size_key", "16"))
+        edDescription.setTextSize(sharedPreferences?.getString("content_size_key", "14"))
+    }
+
+    private fun getSelectedTheme(): Int {
+        return if (defaultPreference.getString("theme_key", "green") == "green") {
+            R.style.Theme_NewNoteBlue
+        } else {
+            R.style.Theme_NewNoteGreen
         }
     }
 }

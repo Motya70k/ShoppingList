@@ -10,6 +10,7 @@ import android.view.MenuItem
 import android.view.MenuItem.OnActionExpandListener
 import android.view.View
 import android.widget.EditText
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,6 +43,13 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
         init()
         initRcView()
         listItemObserver()
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                saveItemCount()
+                finish()
+            }
+        })
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -75,7 +83,7 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.save_item -> {
-                addNewShopItem()
+                addNewShopItem(edItem?.text.toString())
             }
             R.id.delete_list -> {
                 mainViewModel.deleteList(shoppingListName?.id!!, true)
@@ -90,15 +98,16 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
                     "Share by"
                 ))
             }
+            android.R.id.home -> if (item.itemId == android.R.id.home) finish()
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun addNewShopItem() {
-        if (edItem?.text.toString().isEmpty()) return
+    private fun addNewShopItem(name: String) {
+        if (name.isEmpty()) return
         val item = ShoppingListItem(
             null,
-            edItem?.text.toString(),
+            name,
             "",
             false,
             shoppingListName?.id!!,
@@ -194,6 +203,7 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
                 mainViewModel.deleteLibraryItem(listItem.id!!)
                 mainViewModel.getAllLibraryItems("%${edItem?.text.toString()}%")
             }
+            ShoppingListItemAdapter.ADD_LIBRARY_ITEM -> addNewShopItem(listItem.name)
         }
     }
 
@@ -212,5 +222,17 @@ class ShoppingListActivity : AppCompatActivity(), ShoppingListItemAdapter.Listen
                 mainViewModel.getAllLibraryItems("%${edItem?.text.toString()}%")
         }
         })
+    }
+
+    private fun saveItemCount() {
+        var checkedItemCounter = 0
+        adapter?.currentList?.forEach {
+            if (it.itemChecked) checkedItemCounter++
+        }
+        val tempShopListNameItem = shoppingListName?.copy(
+            allItemsCounter = adapter?.itemCount!!,
+            checkedItemsCounter = checkedItemCounter
+        )
+        mainViewModel.updateShoppingListName(tempShopListNameItem!!)
     }
 }

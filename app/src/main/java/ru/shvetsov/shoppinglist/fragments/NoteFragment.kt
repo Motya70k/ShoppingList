@@ -2,6 +2,7 @@ package ru.shvetsov.shoppinglist.fragments
 
 import android.app.Activity
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +11,10 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ru.shvetsov.shoppinglist.activities.MainApp
 import ru.shvetsov.shoppinglist.activities.NewNoteActivity
 import ru.shvetsov.shoppinglist.databinding.FragmentNoteBinding
@@ -24,6 +28,7 @@ class NoteFragment : BaseFragment(), NoteAdapter.Listener {
     private lateinit var binding: FragmentNoteBinding
     private lateinit var editLauncher: ActivityResultLauncher<Intent>
     private lateinit var adapter: NoteAdapter
+    private lateinit var defaultPreference: SharedPreferences
     private val mainViewModel: MainViewModel by activityViewModels {
         MainViewModel.MainViewModelFactory((context?.applicationContext as MainApp).dataBase)
     }
@@ -34,7 +39,7 @@ class NoteFragment : BaseFragment(), NoteAdapter.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainViewModel.allNotes.observe(this) { it }
+        mainViewModel.allNotes.observe(this) {}
         onEditResult()
     }
 
@@ -53,9 +58,18 @@ class NoteFragment : BaseFragment(), NoteAdapter.Listener {
     }
 
     private fun initRecyclerView() = with(binding) {
-        rcViewNote.layoutManager = LinearLayoutManager(activity)
-        adapter = NoteAdapter(this@NoteFragment)
+        defaultPreference = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+        rcViewNote.layoutManager = getLayoutManager()
+        adapter = NoteAdapter(this@NoteFragment, defaultPreference)
         rcViewNote.adapter = adapter
+    }
+
+    private fun getLayoutManager(): RecyclerView.LayoutManager {
+        return if (defaultPreference.getString("note_style_key", "Linear") == "Linear") {
+            LinearLayoutManager(activity)
+        } else {
+            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        }
     }
 
     private fun observer() {
