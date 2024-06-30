@@ -11,7 +11,7 @@ import ru.shvetsov.shoppinglist.entities.ShoppingListName
 
 @Database(
     entities = [LibraryItem::class, NoteItem::class,
-        ShoppingListItem::class, ShoppingListName::class], version = 1
+        ShoppingListItem::class, ShoppingListName::class], version = 1, exportSchema = true
 )
 abstract class MainDataBase : RoomDatabase() {
     abstract fun getDao(): Dao

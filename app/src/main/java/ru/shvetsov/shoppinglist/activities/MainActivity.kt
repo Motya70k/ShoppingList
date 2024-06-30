@@ -17,14 +17,16 @@ import ru.shvetsov.shoppinglist.settings.SettingsActivity
 class MainActivity : AppCompatActivity(), NewListDialog.Listener {
     private lateinit var binding: ActivityMainBinding
     private var currentMenuItemId = R.id.shop_list
+    private var currentTheme = ""
     private lateinit var defaultPreference: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
         defaultPreference = PreferenceManager.getDefaultSharedPreferences(this)
         setTheme(getSelectedTheme())
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        currentTheme = defaultPreference.getString("theme_key", "green").toString()
         FragmentManager.setFragment(ShoppingListNameFragment.newInstance(), this)
         setBottomNavListener()
     }
@@ -58,6 +60,7 @@ class MainActivity : AppCompatActivity(), NewListDialog.Listener {
     override fun onResume() {
         super.onResume()
         binding.bottomNavView.selectedItemId = currentMenuItemId
+        if (defaultPreference.getString("theme_key", "green") != currentTheme) recreate()
     }
 
     private fun getSelectedTheme(): Int {

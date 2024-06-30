@@ -233,9 +233,9 @@ class NewNoteActivity : AppCompatActivity() {
 
     private fun getSelectedTheme(): Int {
         return if (defaultPreference.getString("theme_key", "green") == "green") {
-            R.style.Theme_NewNoteBlue
-        } else {
             R.style.Theme_NewNoteGreen
+        } else {
+            R.style.Theme_NewNoteBlue
         }
     }
 }
