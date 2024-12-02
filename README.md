@@ -38,7 +38,7 @@ ___
    + Склонировать проект
    ```
    git init
-   git clone https://github.com/Motya70k/ShoppingList
+   git clone https://github.com/mvshvetsov/ShoppingList
    ```
 2. Открыть проект в Android Studio
 3. Синхронизировать проект
